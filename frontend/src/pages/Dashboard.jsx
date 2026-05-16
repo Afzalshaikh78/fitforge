@@ -15,13 +15,35 @@ export default function Dashboard() {
   const [showUpgradeBanner, setShowUpgradeBanner] = useState(false);
 
   useEffect(() => {
+    let refreshInterval;
+    let refreshTimeout;
+
     if (searchParams.get('upgraded') === 'true') {
       refreshUser();
       setShowUpgradeBanner(true);
       setTimeout(() => setShowUpgradeBanner(false), 5000);
+
+      refreshInterval = setInterval(() => {
+        refreshUser();
+      }, 3000);
+
+      refreshTimeout = setTimeout(() => {
+        clearInterval(refreshInterval);
+      }, 30000);
     }
+
     fetchData();
+    return () => {
+      clearInterval(refreshInterval);
+      clearTimeout(refreshTimeout);
+    };
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get('upgraded') === 'true' && user?.plan === 'pro') {
+      setShowUpgradeBanner(true);
+    }
+  }, [searchParams, user?.plan]);
 
   const fetchData = async () => {
     try {
