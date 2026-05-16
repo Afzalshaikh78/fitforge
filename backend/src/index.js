@@ -2,6 +2,9 @@ import './config/env.js';
 import express from 'express';
 import cors from 'cors';
 import { sql } from 'drizzle-orm';
+import { existsSync } from 'fs';
+import { dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
 import db from './db/index.js';
 
 import authRoutes from './routes/auth.js';
@@ -11,14 +14,27 @@ import mealPlanRoutes from './routes/mealplans.js';
 import stripeRoutes from './routes/stripe.js';
 import weightRoutes from './routes/weight.js';
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const frontendDistDir = resolve(__dirname, '../../frontend-dist');
+const frontendIndexPath = resolve(frontendDistDir, 'index.html');
 const app = express();
+
+const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 // Stripe webhook needs the raw body before JSON parsing.
 app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
 
 app.use(express.json());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Origin not allowed by CORS'));
+  },
   credentials: true,
 }));
 
@@ -30,6 +46,18 @@ app.use('/api/workouts', workoutRoutes);
 app.use('/api/meal-plans', mealPlanRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/weight', weightRoutes);
+
+if (existsSync(frontendDistDir)) {
+  app.use(express.static(frontendDistDir));
+
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
+
+    return res.sendFile(frontendIndexPath);
+  });
+}
 
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
 
