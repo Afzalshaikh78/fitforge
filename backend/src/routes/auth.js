@@ -31,6 +31,11 @@ router.post('/google', async (req, res) => {
       } else {
         [user] = await db.insert(users).values({ email, name, googleId, avatar: picture }).returning();
       }
+    } else {
+      [user] = await db.update(users)
+        .set({ name, avatar: picture, email })
+        .where(eq(users.id, user.id))
+        .returning();
     }
 
     res.json({ token: generateToken(user.id), user: sanitizeUser(user) });

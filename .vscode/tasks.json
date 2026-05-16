@@ -1,0 +1,45 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "FitForge: Start All",
+      "dependsOn": [
+        "FitForge: Backend",
+        "FitForge: Frontend"
+      ],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    },
+    {
+      "label": "FitForge: Frontend",
+      "type": "npm",
+      "script": "dev",
+      "path": "frontend",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "fitforge"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "FitForge: Backend",
+      "type": "npm",
+      "script": "dev",
+      "path": "backend",
+      "isBackground": true,
+      "options": {
+        "env": {
+          "PORT": "3001"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "fitforge"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

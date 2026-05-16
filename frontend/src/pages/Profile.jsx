@@ -31,6 +31,19 @@ export default function Profile() {
   const [billingLoading, setBillingLoading] = useState(false);
 
   useEffect(() => {
+    if (!user) return;
+
+    setForm({
+      name: user.name || '',
+      height: user.height || '',
+      weight: user.weight || '',
+      age: user.age || '',
+      goal: user.goal || 'maintain',
+      dailyCalorieGoal: user.dailyCalorieGoal || 2000,
+    });
+  }, [user]);
+
+  useEffect(() => {
     api.get('/weight').then(r => setWeightLogs(r.data)).catch(() => {});
   }, []);
 

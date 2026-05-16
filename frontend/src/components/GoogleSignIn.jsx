@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import api from '../lib/api.js';
@@ -11,9 +11,41 @@ export default function GoogleSignIn({ onError }) {
   const { login } = useAuth();
   const navigate = useNavigate();
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const buttonId = useId().replace(/:/g, '');
+  const [isReady, setIsReady] = useState(Boolean(window.google?.accounts?.id));
 
   useEffect(() => {
-    if (!clientId || !window.google) return;
+    if (!clientId) return undefined;
+
+    if (window.google?.accounts?.id) {
+      setIsReady(true);
+      return undefined;
+    }
+
+    const existingScript = document.querySelector('script[data-google-gsi]');
+    if (existingScript) {
+      const handleLoad = () => setIsReady(true);
+      existingScript.addEventListener('load', handleLoad);
+      return () => existingScript.removeEventListener('load', handleLoad);
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.dataset.googleGsi = 'true';
+    script.onload = () => setIsReady(true);
+    script.onerror = () => onError?.('Failed to load Google Sign-In');
+    document.head.appendChild(script);
+
+    return () => {
+      script.onload = null;
+      script.onerror = null;
+    };
+  }, [clientId, onError]);
+
+  useEffect(() => {
+    if (!clientId || !isReady || !window.google?.accounts?.id) return;
 
     window.google.accounts.id.initialize({
       client_id: clientId,
@@ -29,10 +61,10 @@ export default function GoogleSignIn({ onError }) {
     });
 
     window.google.accounts.id.renderButton(
-      document.getElementById('google-signin-btn'),
+      document.getElementById(buttonId),
       { theme: 'filled_black', size: 'large', width: '100%', text: 'continue_with' }
     );
-  }, [clientId]);
+  }, [buttonId, clientId, isReady, login, navigate, onError]);
 
   if (!clientId) {
     return (
@@ -43,10 +75,6 @@ export default function GoogleSignIn({ onError }) {
   }
 
   return (
-    <>
-      {/* Google GSI script */}
-      <script src="https://accounts.google.com/gsi/client" async defer></script>
-      <div id="google-signin-btn" style={{ width: '100%' }} />
-    </>
+    <div id={buttonId} style={{ width: '100%', minHeight: 44 }} />
   );
 }

@@ -32,9 +32,9 @@ services:
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       STRIPE_PRICE_ID_PRO: ${STRIPE_PRICE_ID_PRO}
       FRONTEND_URL: http://localhost:5173
-      PORT: 3001
+      PORT: 3000
     ports:
-      - '3001:3001'
+      - '3000:3000'
     depends_on:
       postgres:
         condition: service_healthy
@@ -47,7 +47,7 @@ services:
       dockerfile: Dockerfile
     container_name: fitforge_frontend
     environment:
-      VITE_API_URL: http://localhost:3001
+      VITE_API_URL: http://localhost:3000
       VITE_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       VITE_STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
     ports:
