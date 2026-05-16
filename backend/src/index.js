@@ -30,9 +30,25 @@ app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin) {
       return callback(null, true);
     }
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    try {
+      const requestOrigin = new URL(origin);
+      const sameOriginHost = process.env.RAILWAY_PUBLIC_DOMAIN || process.env.PUBLIC_DOMAIN;
+
+      if (sameOriginHost && requestOrigin.host === sameOriginHost) {
+        return callback(null, true);
+      }
+    } catch {
+      return callback(new Error('Origin not allowed by CORS'));
+    }
+
     return callback(new Error('Origin not allowed by CORS'));
   },
   credentials: true,
