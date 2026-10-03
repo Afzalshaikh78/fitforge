@@ -584,7 +584,7 @@ export default function Landing() {
           </span>
         </div>
         <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-          © 2025 FitForge. Built for athletes.
+          © 2026 FitForge. Built for athletes.
         </div>
         <div style={{ display: "flex", gap: 20 }}>
           {["Privacy", "Terms", "Contact"].map((l) => (
